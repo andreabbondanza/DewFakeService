@@ -13,8 +13,8 @@
     <RepositoryUrl>https://github.com/andreabbondanza/DewFakeService</RepositoryUrl>
     <PackageProjectUrl>https://github.com/andreabbondanza/DewFakeService</PackageProjectUrl>
     <PackageTags>SERVICE, JSON,XML,REST</PackageTags>
-    <PackageReleaseNotes>Changed jwt library</PackageReleaseNotes>
-    <Version>1.2.1</Version>
+    <PackageReleaseNotes>Fixed bug token deserialization, added base 64 methods</PackageReleaseNotes>
+    <Version>1.2.2</Version>
   </PropertyGroup>
 
   <ItemGroup>

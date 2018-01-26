@@ -295,13 +295,32 @@ namespace DewCore.Types.Complex
             public string Login<T>(T value, string secret = null)
             {
                 secret = secret ?? Secret;
-                string payload = Newtonsoft.Json.JsonConvert.SerializeObject(value);
                 IJwtAlgorithm algorithm = new HMACSHA256Algorithm();
                 IJsonSerializer serializer = new JsonNetSerializer();
                 IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
                 IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
-                var token = encoder.Encode(payload, secret);
+                var token = encoder.Encode(value, secret);
                 return token;
+            }
+            /// <summary>
+            /// Encode base 64 string
+            /// </summary>
+            /// <param name="toEncode"></param>
+            /// <returns></returns>
+            public static string Base64Encode(string toEncode)
+            {
+                var b64 = new JwtBase64UrlEncoder();
+                return b64.Encode(toEncode.ToBytes());
+            }
+            /// <summary>
+            /// Decode a base 64 string
+            /// </summary>
+            /// <param name="toDecode"></param>
+            /// <returns></returns>
+            public static byte[] Base64Decode(string toDecode)
+            {
+                var b64 = new JwtBase64UrlEncoder();
+                return b64.Decode(toDecode);
             }
         }
     }
