@@ -3,6 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using DewCore.Extensions.Strings;
+using JWT;
+using System.Text;
+using JWT.Serializers;
+using JWT.Algorithms;
 
 namespace DewCore.Types.Complex
 {
@@ -44,6 +49,10 @@ namespace DewCore.Types.Complex
                 Custom
             }
             private Dictionary<int, List<object>> _dataSource = new Dictionary<int, List<object>>();
+            /// <summary>
+            /// Token secret key
+            /// </summary>
+            public string Secret = "carriage";
             private Produces CheckProductionType(MethodBase t)
             {
                 var attrs = t.GetCustomAttributes(false);
@@ -54,6 +63,42 @@ namespace DewCore.Types.Complex
                 if (attrs.FirstOrDefault(x => x.GetType() == typeof(XmlProductAttribute)) != default(Attribute))
                     return Produces.Xml;
                 return Produces.Json;
+            }
+            private string SerializeXml<T>(int idSource, Func<T, bool> predicate = null) where T : class, new()
+            {
+                throw new NotImplementedException();
+            }
+            private string SerializeJson<T>(int idSource, Func<T, bool> predicate = null) where T : class, new()
+            {
+                if (predicate == null)
+                    predicate = (x) => true;
+                List<T> ds = new List<T>();
+                if (_dataSource.ContainsKey(idSource))
+                    ds = _dataSource[idSource].OfType<T>().Where(predicate).ToList();
+                var response = new StandardResponse<IEnumerable<T>>() { Data = ds };
+                return response.GetJson();
+            }
+            private bool TokenValidation(string token)
+            {
+                try
+                {
+                    IJsonSerializer serializer = new JsonNetSerializer();
+                    IDateTimeProvider provider = new UtcDateTimeProvider();
+                    IJwtValidator validator = new JwtValidator(serializer, provider);
+                    IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
+                    IJwtDecoder decoder = new JwtDecoder(serializer, validator, urlEncoder);
+
+                    var json = decoder.Decode(token, Secret, verify: true);
+                    return true;
+                }
+                catch (TokenExpiredException)
+                {
+                    return false;
+                }
+                catch (SignatureVerificationException)
+                {
+                    return false;
+                }
             }
             /// <summary>
             /// Add a new datasource to the service
@@ -142,15 +187,73 @@ namespace DewCore.Types.Complex
                 return new StandardResponse() { Error = new StandardResponseError("No method recognized") }.GetJson();
             }
             /// <summary>
+            /// Get all elements of the given key datasource, default is json (change with attributes)
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="idSource"></param>
+            /// <param name="token"></param>
+            /// <param name="customProducer"></param>
+            /// <returns></returns>
+            public string Get<T>(int idSource, string token, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
+            {
+                if (TokenValidation(token))
+                    return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
+                var productType = CheckProductionType(MethodBase.GetCurrentMethod());
+                switch (productType)
+                {
+                    case Produces.Json:
+                        return SerializeJson<T>(idSource);
+                    case Produces.Xml:
+                        return SerializeXml<T>(idSource);
+                    case Produces.Custom:
+                        return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().ToList()) : null;
+                }
+                throw new Exception("Something goes wrong");
+            }
+            /// <summary>
+            /// Get filtred elements of the given key datasource, default is json
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="idSource"></param>
+            /// <param name="token"></param>
+            /// <param name="predicate"></param>
+            /// <param name="customProducer"></param>
+            /// <returns></returns>
+            public string Get<T>(int idSource, string token, Func<T, bool> predicate, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
+            {
+                if (TokenValidation(token))
+                    return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
+                try
+                {
+                    var productType = CheckProductionType(MethodBase.GetCurrentMethod());
+                    switch (productType)
+                    {
+                        case Produces.Json:
+                            return SerializeJson<T>(idSource, predicate);
+                        case Produces.Xml:
+                            return SerializeXml<T>(idSource);
+                        case Produces.Custom:
+                            return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().Where(predicate).ToList()) : null;
+                    }
+                }
+                catch
+                {
+
+                }
+                return new StandardResponse() { Error = new StandardResponseError("No method recognized") }.GetJson();
+            }
+            /// <summary>
             /// Add a new element to a datasource in service
             /// </summary>
             /// <typeparam name="T"></typeparam>
             /// <param name="idSource">datasource key</param>
+            /// <param name="token"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public string Post<T>(int idSource, T value) where T : class, new()
+            public string Post<T>(int idSource, string token, T value) where T : class, new()
             {
-
+                if (TokenValidation(token))
+                    return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
                 if (_dataSource.ContainsKey(idSource))
                 {
                     _dataSource[idSource].Add(value);
@@ -163,11 +266,14 @@ namespace DewCore.Types.Complex
             /// </summary>
             /// <typeparam name="T"></typeparam>
             /// <param name="idSource">datasource key</param>
+            /// <param name="token"></param>
             /// <param name="predicate">Filter predicate</param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public string Put<T>(int idSource, Func<T, bool> predicate, T value) where T : class, new()
+            public string Put<T>(int idSource, string token, Func<T, bool> predicate, T value) where T : class, new()
             {
+                if (TokenValidation(token))
+                    return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
                 if (_dataSource.ContainsKey(idSource))
                 {
                     _dataSource[idSource].OfType<T>().ToList().ForEach((x) =>
@@ -179,23 +285,24 @@ namespace DewCore.Types.Complex
                 }
                 return new StandardResponse() { Error = new StandardResponseError("Unable to find datasource") }.GetJson();
             }
-
-            private string SerializeXml<T>(int idSource, Func<T, bool> predicate = null) where T : class, new()
+            /// <summary>
+            /// Return a jwt token of an object
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="value"></param>
+            /// <param name="secret"></param>
+            /// <returns></returns>
+            public string Login<T>(T value, string secret = null)
             {
-                throw new NotImplementedException();
+                secret = secret ?? Secret;
+                string payload = Newtonsoft.Json.JsonConvert.SerializeObject(value);
+                IJwtAlgorithm algorithm = new HMACSHA256Algorithm();
+                IJsonSerializer serializer = new JsonNetSerializer();
+                IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
+                IJwtEncoder encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
+                var token = encoder.Encode(payload, secret);
+                return token;
             }
-
-            private string SerializeJson<T>(int idSource, Func<T, bool> predicate = null) where T : class, new()
-            {
-                if (predicate == null)
-                    predicate = (x) => true;
-                List<T> ds = new List<T>();
-                if (_dataSource.ContainsKey(idSource))
-                    ds = _dataSource[idSource].OfType<T>().Where(predicate).ToList();
-                var response = new StandardResponse<IEnumerable<T>>() { Data = ds };
-                return response.GetJson();
-            }
-
         }
     }
 }

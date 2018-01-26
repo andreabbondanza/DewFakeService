@@ -2,10 +2,24 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Andrea Vincenzo Abbondanza</Authors>
+    <Company>Dew Studio</Company>
+    <Product>Dew Fake Service</Product>
+    <Description>A fake service to help application development</Description>
+    <PackageIconUrl>http://andrewdev.eu/wp-content/uploads/2016/08/OnlyLogo.png</PackageIconUrl>
+    <PackageLicenseUrl>https://github.com/andreabbondanza/DewFakeService/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <RepositoryUrl>https://github.com/andreabbondanza/DewFakeService</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/andreabbondanza/DewFakeService</PackageProjectUrl>
+    <PackageTags>SERVICE, JSON,XML,REST</PackageTags>
+    <PackageReleaseNotes>Changed jwt library</PackageReleaseNotes>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="DewTypes" Version="1.4.1" />
+    <PackageReference Include="JWT" Version="3.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
 
