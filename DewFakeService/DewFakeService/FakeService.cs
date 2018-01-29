@@ -123,6 +123,52 @@ namespace DewCore.Types.Complex
                 return key;
             }
             /// <summary>
+            /// Generate data in a new datasource
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="prefix"></param>
+            /// <param name="quantity"></param>
+            /// <returns></returns>
+            public int AddDataSourceGenerator<T>(int quantity) where T : class, new()
+            {
+                var key = _dataSource.Count + 1;
+                var subject = typeof(T);
+                var rand = new Random();
+                var list = new List<T>();
+                for (int i = 0; i < quantity; i++)
+                {
+                    var props = subject.GetRuntimeProperties();
+                    var temp = new T();
+                    foreach (var item in props)
+                    {
+                        if (item.PropertyType == typeof(int) || item.PropertyType == typeof(long) || item.PropertyType == typeof(double)
+                            || item.PropertyType == typeof(float) || item.PropertyType == typeof(byte) || item.PropertyType == typeof(sbyte))
+                        {
+                            item.SetValue(temp, i);
+                        }
+                        if (item.PropertyType == typeof(DateTime))
+                            item.SetValue(temp, DateTime.Now.AddDays(i));
+                        if (item.PropertyType == typeof(TimeSpan))
+                            item.SetValue(temp, DateTime.Now.AddMinutes(i).TimeOfDay);
+                        if (item.PropertyType == typeof(string))
+                            item.SetValue(temp, item.Name + "_" + i);
+                        if (item.PropertyType == typeof(bool))
+                            item.SetValue(temp, rand.Next(-10, 10) > 0);
+                        var x = item.PropertyType.GetConstructor(Type.EmptyTypes);
+                        if (item.PropertyType.GetConstructor(Type.EmptyTypes) != default(ConstructorInfo))
+                        {
+                            if (!item.PropertyType.IsGenericType)
+                            {
+                                item.SetValue(temp, Activator.CreateInstance(item.PropertyType));
+                            }
+                        }
+                    }
+                    list.Add(temp);
+                }
+                _dataSource.Add(key, list.ToList<object>());
+                return key;
+            }
+            /// <summary>
             /// Clear a datasource in the service
             /// </summary>
             /// <param name="idSource"></param>
@@ -196,7 +242,7 @@ namespace DewCore.Types.Complex
             /// <returns></returns>
             public string Get<T>(int idSource, string token, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
             {
-                if (TokenValidation(token))
+                if (!TokenValidation(token))
                     return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
                 var productType = CheckProductionType(MethodBase.GetCurrentMethod());
                 switch (productType)
@@ -221,7 +267,7 @@ namespace DewCore.Types.Complex
             /// <returns></returns>
             public string Get<T>(int idSource, string token, Func<T, bool> predicate, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
             {
-                if (TokenValidation(token))
+                if (!TokenValidation(token))
                     return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
                 try
                 {
@@ -252,7 +298,7 @@ namespace DewCore.Types.Complex
             /// <returns></returns>
             public string Post<T>(int idSource, string token, T value) where T : class, new()
             {
-                if (TokenValidation(token))
+                if (!TokenValidation(token))
                     return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
                 if (_dataSource.ContainsKey(idSource))
                 {
@@ -272,7 +318,7 @@ namespace DewCore.Types.Complex
             /// <returns></returns>
             public string Put<T>(int idSource, string token, Func<T, bool> predicate, T value) where T : class, new()
             {
-                if (TokenValidation(token))
+                if (!TokenValidation(token))
                     return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
                 if (_dataSource.ContainsKey(idSource))
                 {
