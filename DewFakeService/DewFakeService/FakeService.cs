@@ -78,6 +78,16 @@ namespace DewCore.Types.Complex
                 var response = new StandardResponse<IEnumerable<T>>() { Data = ds };
                 return response.GetJson();
             }
+            private string SerializeJson<T>(int idSource, int offset, Func<T, bool> predicate = null) where T : class, new()
+            {
+                if (predicate == null)
+                    predicate = (x) => true;
+                List<T> ds = new List<T>();
+                if (_dataSource.ContainsKey(idSource))
+                    ds = _dataSource[idSource].OfType<T>().Where(predicate).ToList();
+                var response = new StandardResponse<IEnumerable<T>>() { Data = ds };
+                return response.GetJson();
+            }
             private bool TokenValidation(string token)
             {
                 try
@@ -294,6 +304,7 @@ namespace DewCore.Types.Complex
             /// <typeparam name="T"></typeparam>
             /// <param name="idSource"></param>
             /// <param name="customProducer"></param>
+            /// <param name="offset"></param>
             /// <returns></returns>
             public string Get<T>(int idSource, int offset, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
             {
@@ -301,7 +312,7 @@ namespace DewCore.Types.Complex
                 switch (productType)
                 {
                     case Produces.Json:
-                        return SerializeJson<T>(idSource);
+                        return SerializeJson<T>(idSource, offset);
                     case Produces.Xml:
                         return SerializeXml<T>(idSource);
                     case Produces.Custom:
@@ -326,7 +337,7 @@ namespace DewCore.Types.Complex
                     switch (productType)
                     {
                         case Produces.Json:
-                            return SerializeJson<T>(idSource, predicate);
+                            return SerializeJson<T>(idSource, offset, predicate);
                         case Produces.Xml:
                             return SerializeXml<T>(idSource);
                         case Produces.Custom:
@@ -356,7 +367,7 @@ namespace DewCore.Types.Complex
                 switch (productType)
                 {
                     case Produces.Json:
-                        return SerializeJson<T>(idSource);
+                        return SerializeJson<T>(idSource, offset);
                     case Produces.Xml:
                         return SerializeXml<T>(idSource);
                     case Produces.Custom:
@@ -384,7 +395,7 @@ namespace DewCore.Types.Complex
                     switch (productType)
                     {
                         case Produces.Json:
-                            return SerializeJson<T>(idSource, predicate);
+                            return SerializeJson<T>(idSource, offset, predicate);
                         case Produces.Xml:
                             return SerializeXml<T>(idSource);
                         case Produces.Custom:
