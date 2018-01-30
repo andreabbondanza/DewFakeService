@@ -78,13 +78,13 @@ namespace DewCore.Types.Complex
                 var response = new StandardResponse<IEnumerable<T>>() { Data = ds };
                 return response.GetJson();
             }
-            private string SerializeJson<T>(int idSource, int offset, Func<T, bool> predicate = null) where T : class, new()
+            private string SerializeJson<T>(int idSource, int offset, int limit, Func<T, bool> predicate = null) where T : class, new()
             {
                 if (predicate == null)
                     predicate = (x) => true;
                 List<T> ds = new List<T>();
                 if (_dataSource.ContainsKey(idSource))
-                    ds = _dataSource[idSource].OfType<T>().Where(predicate).ToList();
+                    ds = _dataSource[idSource].OfType<T>().Where(predicate).Skip(offset).Take(limit).ToList();
                 var response = new StandardResponse<IEnumerable<T>>() { Data = ds };
                 return response.GetJson();
             }
@@ -305,18 +305,19 @@ namespace DewCore.Types.Complex
             /// <param name="idSource"></param>
             /// <param name="customProducer"></param>
             /// <param name="offset"></param>
+            /// <param name="limit"></param>
             /// <returns></returns>
-            public string Get<T>(int idSource, int offset, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
+            public string Get<T>(int idSource, int offset, int limit, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
             {
                 var productType = CheckProductionType(MethodBase.GetCurrentMethod());
                 switch (productType)
                 {
                     case Produces.Json:
-                        return SerializeJson<T>(idSource, offset);
+                        return SerializeJson<T>(idSource, offset, limit);
                     case Produces.Xml:
                         return SerializeXml<T>(idSource);
                     case Produces.Custom:
-                        return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().ToList()) : null;
+                        return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().Skip(offset).Take(10).ToList()) : null;
                 }
                 throw new Exception("Something goes wrong");
             }
@@ -328,8 +329,9 @@ namespace DewCore.Types.Complex
             /// <param name="predicate"></param>
             /// <param name="customProducer"></param>
             /// <param name="offset"></param>
+            /// /// <param name="limit"></param>
             /// <returns></returns>
-            public string Get<T>(int idSource, int offset, Func<T, bool> predicate, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
+            public string Get<T>(int idSource, int offset, int limit, Func<T, bool> predicate, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
             {
                 try
                 {
@@ -337,11 +339,11 @@ namespace DewCore.Types.Complex
                     switch (productType)
                     {
                         case Produces.Json:
-                            return SerializeJson<T>(idSource, offset, predicate);
+                            return SerializeJson<T>(idSource, offset, limit, predicate);
                         case Produces.Xml:
                             return SerializeXml<T>(idSource);
                         case Produces.Custom:
-                            return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().Where(predicate).ToList()) : null;
+                            return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().Where(predicate).Skip(offset).Take(10).ToList()) : null;
                     }
                 }
                 catch
@@ -359,7 +361,7 @@ namespace DewCore.Types.Complex
             /// <param name="customProducer"></param>
             /// <param name="offset"></param>
             /// <returns></returns>
-            public string Get<T>(int idSource, string token, int offset, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
+            public string Get<T>(int idSource, string token, int offset, int limit, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
             {
                 if (!TokenValidation(token))
                     return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
@@ -367,11 +369,11 @@ namespace DewCore.Types.Complex
                 switch (productType)
                 {
                     case Produces.Json:
-                        return SerializeJson<T>(idSource, offset);
+                        return SerializeJson<T>(idSource, offset, limit);
                     case Produces.Xml:
                         return SerializeXml<T>(idSource);
                     case Produces.Custom:
-                        return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().ToList()) : null;
+                        return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().Skip(offset).Take(10).ToList()) : null;
                 }
                 throw new Exception("Something goes wrong");
             }
@@ -385,7 +387,8 @@ namespace DewCore.Types.Complex
             /// <param name="offset"></param>
             /// <param name="customProducer"></param>
             /// <returns></returns>
-            public string Get<T>(int idSource, int offset, string token, Func<T, bool> predicate, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
+            public string Get<T>(int idSource, int offset, int limit,
+                string token, Func<T, bool> predicate, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
             {
                 if (!TokenValidation(token))
                     return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
@@ -395,11 +398,11 @@ namespace DewCore.Types.Complex
                     switch (productType)
                     {
                         case Produces.Json:
-                            return SerializeJson<T>(idSource, offset, predicate);
+                            return SerializeJson<T>(idSource, offset, limit, predicate);
                         case Produces.Xml:
                             return SerializeXml<T>(idSource);
                         case Produces.Custom:
-                            return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().Where(predicate).ToList()) : null;
+                            return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().Where(predicate).Skip(offset).Take(10).ToList()) : null;
                     }
                 }
                 catch
