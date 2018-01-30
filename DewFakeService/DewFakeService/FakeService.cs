@@ -289,6 +289,115 @@ namespace DewCore.Types.Complex
                 return new StandardResponse() { Error = new StandardResponseError("No method recognized") }.GetJson();
             }
             /// <summary>
+            /// Get all elements of the given key datasource, default is json (change with attributes)
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="idSource"></param>
+            /// <param name="customProducer"></param>
+            /// <returns></returns>
+            public string Get<T>(int idSource, int offset, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
+            {
+                var productType = CheckProductionType(MethodBase.GetCurrentMethod());
+                switch (productType)
+                {
+                    case Produces.Json:
+                        return SerializeJson<T>(idSource);
+                    case Produces.Xml:
+                        return SerializeXml<T>(idSource);
+                    case Produces.Custom:
+                        return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().ToList()) : null;
+                }
+                throw new Exception("Something goes wrong");
+            }
+            /// <summary>
+            /// Get filtred elements of the given key datasource, default is json
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="idSource"></param>
+            /// <param name="predicate"></param>
+            /// <param name="customProducer"></param>
+            /// <param name="offset"></param>
+            /// <returns></returns>
+            public string Get<T>(int idSource, int offset, Func<T, bool> predicate, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
+            {
+                try
+                {
+                    var productType = CheckProductionType(MethodBase.GetCurrentMethod());
+                    switch (productType)
+                    {
+                        case Produces.Json:
+                            return SerializeJson<T>(idSource, predicate);
+                        case Produces.Xml:
+                            return SerializeXml<T>(idSource);
+                        case Produces.Custom:
+                            return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().Where(predicate).ToList()) : null;
+                    }
+                }
+                catch
+                {
+
+                }
+                return new StandardResponse() { Error = new StandardResponseError("No method recognized") }.GetJson();
+            }
+            /// <summary>
+            /// Get all elements of the given key datasource, default is json (change with attributes)
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="idSource"></param>
+            /// <param name="token"></param>
+            /// <param name="customProducer"></param>
+            /// <param name="offset"></param>
+            /// <returns></returns>
+            public string Get<T>(int idSource, string token, int offset, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
+            {
+                if (!TokenValidation(token))
+                    return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
+                var productType = CheckProductionType(MethodBase.GetCurrentMethod());
+                switch (productType)
+                {
+                    case Produces.Json:
+                        return SerializeJson<T>(idSource);
+                    case Produces.Xml:
+                        return SerializeXml<T>(idSource);
+                    case Produces.Custom:
+                        return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().ToList()) : null;
+                }
+                throw new Exception("Something goes wrong");
+            }
+            /// <summary>
+            /// Get filtred elements of the given key datasource, default is json
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="idSource"></param>
+            /// <param name="token"></param>
+            /// <param name="predicate"></param>
+            /// <param name="offset"></param>
+            /// <param name="customProducer"></param>
+            /// <returns></returns>
+            public string Get<T>(int idSource, int offset, string token, Func<T, bool> predicate, Func<IEnumerable<T>, string> customProducer = null) where T : class, new()
+            {
+                if (!TokenValidation(token))
+                    return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
+                try
+                {
+                    var productType = CheckProductionType(MethodBase.GetCurrentMethod());
+                    switch (productType)
+                    {
+                        case Produces.Json:
+                            return SerializeJson<T>(idSource, predicate);
+                        case Produces.Xml:
+                            return SerializeXml<T>(idSource);
+                        case Produces.Custom:
+                            return customProducer != null ? customProducer(_dataSource[idSource].OfType<T>().Where(predicate).ToList()) : null;
+                    }
+                }
+                catch
+                {
+
+                }
+                return new StandardResponse() { Error = new StandardResponseError("No method recognized") }.GetJson();
+            }
+            /// <summary>
             /// Add a new element to a datasource in service
             /// </summary>
             /// <typeparam name="T"></typeparam>
