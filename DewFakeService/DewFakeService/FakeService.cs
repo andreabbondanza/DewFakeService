@@ -431,6 +431,23 @@ namespace DewCore.Types.Complex
                 return new StandardResponse() { Error = new StandardResponseError("Unable to find datasource") }.GetJson();
             }
             /// <summary>
+            /// Add a new element to a datasource in service
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="idSource">datasource key</param>
+            /// <param name="token"></param>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public string Post<T>(int idSource, T value) where T : class, new()
+            {
+                if (_dataSource.ContainsKey(idSource))
+                {
+                    _dataSource[idSource].Add(value);
+                    return new StandardResponse() { Data = new { Text = "Data inserted" } }.GetJson();
+                }
+                return new StandardResponse() { Error = new StandardResponseError("Unable to find datasource") }.GetJson();
+            }
+            /// <summary>
             /// Update an element in a datasource in service
             /// </summary>
             /// <typeparam name="T"></typeparam>
@@ -443,6 +460,28 @@ namespace DewCore.Types.Complex
             {
                 if (!TokenValidation(token))
                     return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
+                if (_dataSource.ContainsKey(idSource))
+                {
+                    _dataSource[idSource].OfType<T>().ToList().ForEach((x) =>
+                    {
+                        if (predicate(x))
+                            x = value;
+                    });
+                    return new StandardResponse() { Data = new { Text = "Data updated" } }.GetJson();
+                }
+                return new StandardResponse() { Error = new StandardResponseError("Unable to find datasource") }.GetJson();
+            }
+            /// <summary>
+            /// Update an element in a datasource in service
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="idSource">datasource key</param>
+            /// <param name="token"></param>
+            /// <param name="predicate">Filter predicate</param>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public string Put<T>(int idSource, Func<T, bool> predicate, T value) where T : class, new()
+            {
                 if (_dataSource.ContainsKey(idSource))
                 {
                     _dataSource[idSource].OfType<T>().ToList().ForEach((x) =>
