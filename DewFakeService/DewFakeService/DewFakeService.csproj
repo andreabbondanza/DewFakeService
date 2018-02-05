@@ -13,10 +13,10 @@
     <RepositoryUrl>https://github.com/andreabbondanza/DewFakeService</RepositoryUrl>
     <PackageProjectUrl>https://github.com/andreabbondanza/DewFakeService</PackageProjectUrl>
     <PackageTags>SERVICE, JSON,XML,REST</PackageTags>
-    <PackageReleaseNotes>Fixed PUT update, added NoUpdate property attribute</PackageReleaseNotes>
-    <Version>1.5.1</Version>
-    <AssemblyVersion>1.5.1.0</AssemblyVersion>
-    <FileVersion>1.5.1.0</FileVersion>
+    <PackageReleaseNotes>Static datasource</PackageReleaseNotes>
+    <Version>1.6.0</Version>
+    <AssemblyVersion>1.6.0.0</AssemblyVersion>
+    <FileVersion>1.6.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

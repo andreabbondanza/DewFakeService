@@ -53,7 +53,7 @@ namespace DewCore.Types.Complex
                 Xml,
                 Custom
             }
-            private Dictionary<int, List<object>> _dataSource = new Dictionary<int, List<object>>();
+            private static Dictionary<int, List<object>> _dataSource = new Dictionary<int, List<object>>();
             /// <summary>
             /// Token secret key
             /// </summary>
