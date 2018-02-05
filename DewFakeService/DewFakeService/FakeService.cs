@@ -525,6 +525,48 @@ namespace DewCore.Types.Complex
                 return new StandardResponse() { Error = new StandardResponseError("Unable to find datasource") }.GetJson();
             }
             /// <summary>
+            /// Delete an element in a datasource in service
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="idSource">datasource key</param>
+            /// <param name="token"></param>
+            /// <param name="predicate">Filter predicate</param>
+            /// <param name="toDelete"></param>
+            /// <returns></returns>
+            public string Delete<T>(int idSource, string token, Func<T, bool> predicate, T toDelete) where T : class, new()
+            {
+                if (!TokenValidation(token))
+                    return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
+                if (_dataSource.ContainsKey(idSource))
+                {
+                    var l = _dataSource[idSource].OfType<T>().ToList();
+                    Predicate<T> pred = (y) => predicate.Invoke(y);
+                    l.RemoveAll(pred);
+                    return new StandardResponse() { Data = new { Text = "Data deleted" } }.GetJson();
+                }
+                return new StandardResponse() { Error = new StandardResponseError("Unable to find datasource") }.GetJson();
+            }
+            /// <summary>
+            /// Delete an element in a datasource in service
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="idSource">datasource key</param>
+            /// <param name="token"></param>
+            /// <param name="predicate">Filter predicate</param>
+            /// <param name="toDelete"></param>
+            /// <returns></returns>
+            public string Delete<T>(int idSource, Func<T, bool> predicate, T toDelete) where T : class, new()
+            {
+                if (_dataSource.ContainsKey(idSource))
+                {
+                    var l = _dataSource[idSource].OfType<T>().ToList();
+                    Predicate<T> pred = (y) => predicate.Invoke(y);
+                    l.RemoveAll(pred);
+                    return new StandardResponse() { Data = new { Text = "Data deleted" } }.GetJson();
+                }
+                return new StandardResponse() { Error = new StandardResponseError("Unable to find datasource") }.GetJson();
+            }
+            /// <summary>
             /// Return a jwt token of an object
             /// </summary>
             /// <typeparam name="T"></typeparam>

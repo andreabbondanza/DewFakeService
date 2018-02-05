@@ -13,10 +13,10 @@
     <RepositoryUrl>https://github.com/andreabbondanza/DewFakeService</RepositoryUrl>
     <PackageProjectUrl>https://github.com/andreabbondanza/DewFakeService</PackageProjectUrl>
     <PackageTags>SERVICE, JSON,XML,REST</PackageTags>
-    <PackageReleaseNotes>Static datasource</PackageReleaseNotes>
-    <Version>1.6.0</Version>
-    <AssemblyVersion>1.6.0.0</AssemblyVersion>
-    <FileVersion>1.6.0.0</FileVersion>
+    <PackageReleaseNotes>Added delete</PackageReleaseNotes>
+    <Version>1.7.0</Version>
+    <AssemblyVersion>1.7.0.0</AssemblyVersion>
+    <FileVersion>1.7.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
