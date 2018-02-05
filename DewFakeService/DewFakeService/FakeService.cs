@@ -37,6 +37,11 @@ namespace DewCore.Types.Complex
         {
 
         }
+        [System.AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+        public sealed class NoUpdateAttribute : Attribute
+        {
+
+        }
         /// <summary>
         /// A fake service for test/development
         /// </summary>
@@ -462,11 +467,24 @@ namespace DewCore.Types.Complex
                     return new StandardResponse() { Error = new StandardResponseError("Unauthorized access") }.GetJson();
                 if (_dataSource.ContainsKey(idSource))
                 {
-                    _dataSource[idSource].OfType<T>().ToList().ForEach((x) =>
+                    var l = _dataSource[idSource].OfType<T>().ToList();
+                    foreach (var item in l)
                     {
-                        if (predicate(x))
-                            x = value;
-                    });
+                        if (predicate(item))
+                        {
+                            var prop = item.GetType().GetRuntimeProperties();
+                            foreach (var item1 in prop)
+                            {
+                                var attr = item1.GetCustomAttributes().FirstOrDefault(x => x.GetType() == typeof(NoUpdateAttribute));
+                                if (attr == (default(Attribute)))
+                                {
+                                    var temp = value.GetType().GetRuntimeProperty(item1.Name);
+                                    item1.SetValue(item, temp.GetValue(value));
+                                }
+                            }
+                            break;
+                        }
+                    }
                     return new StandardResponse() { Data = new { Text = "Data updated" } }.GetJson();
                 }
                 return new StandardResponse() { Error = new StandardResponseError("Unable to find datasource") }.GetJson();
@@ -484,11 +502,24 @@ namespace DewCore.Types.Complex
             {
                 if (_dataSource.ContainsKey(idSource))
                 {
-                    _dataSource[idSource].OfType<T>().ToList().ForEach((x) =>
+                    var l = _dataSource[idSource].OfType<T>().ToList();
+                    foreach (var item in l)
                     {
-                        if (predicate(x))
-                            x = value;
-                    });
+                        if (predicate(item))
+                        {
+                            var prop = item.GetType().GetRuntimeProperties();
+                            foreach (var item1 in prop)
+                            {
+                                var attr = item1.GetCustomAttributes().FirstOrDefault(x => x.GetType() == typeof(NoUpdateAttribute));
+                                if (attr == (default(Attribute)))
+                                {
+                                    var temp = value.GetType().GetRuntimeProperty(item1.Name);
+                                    item1.SetValue(item, temp.GetValue(value));
+                                }
+                            }
+                            break;
+                        }
+                    }
                     return new StandardResponse() { Data = new { Text = "Data updated" } }.GetJson();
                 }
                 return new StandardResponse() { Error = new StandardResponseError("Unable to find datasource") }.GetJson();
